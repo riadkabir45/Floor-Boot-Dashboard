@@ -83,7 +83,7 @@ function DashboardSidebarContent() {
             <div className="flex items-center gap-3">
               <Link href="/">
                 <Image
-                  src="/DMS-Logo.png"
+                  src="/DMS-logo.png"
                   alt="Logo"
                   width={70}
                   height={60}
