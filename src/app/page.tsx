@@ -2,20 +2,43 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { OrderTabs } from "@/components/OrdersComponents/OrderTabs";
 import { OrdersTable } from "@/components/OrdersComponents/OrdersTable";
 import { OrderSearchBar } from "@/components/OrdersComponents/OrderSearchBar";
 import { ordersData } from "@/data/AllData";
-import { Order, OrderStatus } from "@/types/AllTypes";
+import { BackendOrderResponse, Order, OrderStatus } from "@/types/AllTypes";
+import api from "@/lib/apis";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"all" | OrderStatus>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [totalData, setTotalData] = useState<Order[]>(ordersData);
+
+  useEffect(() => {
+    api.get('/admins/admin-orders/').then(response => {
+      const test: Order[] = response.data.data.orders.map((order:BackendOrderResponse,index:number) => ({
+        id: index,
+        purchaseOrder: `PO-${1000 + index}`,
+        productId: order.product.product_id,
+        orderDate: new Date().toISOString().split('T')[0],
+        orderTotal: parseFloat(order.order_total),
+        customer: order.user.full_name,
+        shipMethod: order.ship_method || 'Standard',
+        carrier: 'DHL',
+        trackingNo: `TRK${2000 + index}`,
+        item: order.product.product_title,
+        qty: order.quantity,
+        status: order.is_shiped ? "shipped" : "unshipped",
+      }));
+      setTotalData(test);
+    })
+  },[])
 
   // Filter orders based on active tab
   const getFilteredOrders = () => {
-    let filtered = ordersData;
+    
+    let filtered = totalData;
 
     // Filter by tab
     if (activeTab !== "all") {
@@ -42,11 +65,11 @@ export default function Home() {
 
   // Calculate counts for each tab
   const counts = {
-    all: ordersData.length,
-    shipped: ordersData.filter((o) => o.status === "shipped").length,
-    unshipped: ordersData.filter((o) => o.status === "unshipped").length,
-    cancelled: ordersData.filter((o) => o.status === "cancelled").length,
-  };
+    all: totalData.length,
+    shipped: totalData.filter((o) => o.status === "shipped").length,
+    unshipped: totalData.filter((o) => o.status === "unshipped").length,
+    cancelled: totalData.filter((o) => o.status === "cancelled").length,
+  };  
 
   const handleViewDetails = (order: Order) => {
     console.log("View details for order:", order);

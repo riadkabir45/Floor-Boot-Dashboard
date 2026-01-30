@@ -52,7 +52,7 @@ export interface CatalogueProduct {
   imageUrl?: string;
 }
 
-export type OrderStatus = "shipped" | "unshipped" | "cancelled";
+export type OrderStatus = "shipped" | "unshipped" | "cancelled" | "placed";
 
 export interface Order {
   id: string;
@@ -67,4 +67,57 @@ export interface Order {
   item: string;
   qty: number;
   status: OrderStatus;
+}
+
+export interface User {
+  full_name: string;
+  email: string;
+  phone: string;
+  image: string;
+}
+
+export interface UploadedImage {
+  id: number;
+  image: string;
+  title: string;
+}
+
+export interface Product {
+  id: number;
+  product_title: string;
+  item_description: string;
+  primary_image: string;
+  uploaded_images: UploadedImage[];
+  regular_price: string;
+  sale_price: string;
+  product_id: string;
+  is_calculate: boolean;
+}
+
+export interface Address {
+  country_or_region: string;
+  address_line_i: string;
+  address_line_ii: string;
+  suburb: string;
+  city: string;
+  postal_code: string;
+  state: string;
+}
+
+export interface BackendOrderResponse {
+  user: User;
+  product: Product;
+  quantity: number;
+  delivery_fee: string;
+  tax_fee: string;
+  order_total: string;
+  ship_method: string | null;
+  status: OrderStatus;
+  carrier: string | null;
+  tracking_no: string | null;
+  is_paid: boolean;
+  is_shiped: boolean;
+  address: Address;
+  custormer_feedback: string | null;
+  is_feedbacked: boolean;
 }
