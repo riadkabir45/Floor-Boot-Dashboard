@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
+import api from "@/lib/apis";
 
 export const SignInForm: React.FC = () => {
   const router = useRouter();
@@ -14,12 +15,29 @@ export const SignInForm: React.FC = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [errorOccured, setErrorOccured] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle sign in logic
+
     console.log("Sign in:", { email, password, rememberMe });
-    router.push("/");
+    const resp = api.post('/auth/login/', {
+      "username": email,
+      "password": password
+    })
+
+    resp.then((response) => {
+      console.log("Login successful:", response.data);
+      setErrorOccured(false);
+      localStorage.setItem('token', response.data.access);
+      router.push("/");
+    }).catch((error) => {
+      console.error("Login failed:", error);
+      setErrorOccured(true);
+    })
+
+    //router.push("/");
   };
 
   return (
@@ -42,15 +60,15 @@ export const SignInForm: React.FC = () => {
             htmlFor="email"
             className="block text-sm font-medium text-gray-700 mb-2"
           >
-            Email / Phone
+            Email / Phone / Username
           </label>
           <input
-            id="email"
+            id="text"
             type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="fhambe@made.com"
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all text-sm"
+            className={"w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all text-sm" + (errorOccured ? " border-red-500" : "")}
             required
           />
         </div>
@@ -70,7 +88,7 @@ export const SignInForm: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all text-sm"
+              className={"w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all text-sm" + (errorOccured ? " border-red-500" : "")}
               required
             />
             <button
