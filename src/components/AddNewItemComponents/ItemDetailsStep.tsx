@@ -14,11 +14,13 @@ interface ItemDetailsStepProps {
     tags: string[];
   };
   onChange: (data: any) => void;
+  categories?: Array<{ id: number; title: string }>;
 }
 
 export const ItemDetailsStep: React.FC<ItemDetailsStepProps> = ({
   data,
   onChange,
+  categories = [],
 }) => {
   const [tagInput, setTagInput] = useState("");
 
@@ -101,10 +103,11 @@ export const ItemDetailsStep: React.FC<ItemDetailsStepProps> = ({
           className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all text-sm bg-white"
         >
           <option value="">Select...</option>
-          <option value="flooring">Flooring</option>
-          <option value="carpet">Carpet</option>
-          <option value="tile">Tile</option>
-          <option value="laminate">Laminate</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id.toString()}>
+              {category.title}
+            </option>
+          ))}
         </select>
       </div>
 

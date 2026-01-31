@@ -27,6 +27,7 @@ import { BiSolidPackage } from "react-icons/bi";
 import { FaUserAlt } from "react-icons/fa";
 import { IoLogOutOutline } from "react-icons/io5";
 import LogoutModal from "./LogOutModal";
+import Cookies from "js-cookie";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,13 +48,20 @@ function DashboardSidebarContent() {
   const { state } = useSidebar();
 
   const handleLogout = async () => {
-    // Perform logout actions here (clear tokens, etc.)
+    // Clear all cookies
+    Cookies.remove('token');
+    Cookies.remove('refreshToken');
+    // Clear any other cookies if needed
+    const allCookies = Cookies.get();
+    Object.keys(allCookies).forEach(cookieName => {
+      Cookies.remove(cookieName);
+    });
+    
+    // Clear localStorage as well
+    localStorage.clear();
+    
     // Redirect to login page
-    // await logout();
-    // localStorage.removeItem("accessToken");
-    // await logout();
     router.push("/sign-in");
-
     setIsLogoutModalOpen(false);
   };
 

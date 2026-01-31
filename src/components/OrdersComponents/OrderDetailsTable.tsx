@@ -35,6 +35,7 @@ export const OrderDetailsTable: React.FC<OrderDetailsTableProps> = ({
   const [showShipMethodDropdown, setShowShipMethodDropdown] = useState(false);
   const [showCarrierModal, setShowCarrierModal] = useState(false);
   const [showShipMethodModal, setShowShipMethodModal] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
@@ -122,7 +123,32 @@ export const OrderDetailsTable: React.FC<OrderDetailsTableProps> = ({
   };
 
   const handleCancel = () => {
-    router.back();
+    setShowCancelModal(true);
+  };
+
+  const confirmCancel = async () => {
+    setShowCancelModal(false);
+    setIsSubmitting(true);
+    try {
+      const payload = {
+        quantity: order.qty,
+        ship_method: shipMethod || order.shipMethod,
+        status: "cancelled",
+        carrier: carrier || order.carrier,
+        tracking_no: trackingNumber || order.trackingNo,
+        is_shiped: false
+      };
+
+      await api.put(`/admins/orders/${order.id}/`, payload);
+      
+      setToast({ message: "Order cancelled successfully!", type: 'success' });
+      setTimeout(() => router.back(), 1500);
+    } catch (error) {
+      console.error("Failed to cancel order:", error);
+      setToast({ message: "Failed to cancel order. Please try again.", type: 'error' });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   return (
     <>
@@ -210,7 +236,7 @@ export const OrderDetailsTable: React.FC<OrderDetailsTableProps> = ({
             <TableCell className="text-gray-600 text-sm">
               <button
                 onClick={() => setShowCarrierModal(true)}
-                className="flex items-center gap-2 px-2 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors min-w-[120px]"
+                className="flex items-center gap-2 px-2 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50 transition-colors min-w-30"
               >
                 <span>{carrier || "Not Set"}</span>
               </button>
@@ -307,6 +333,38 @@ export const OrderDetailsTable: React.FC<OrderDetailsTableProps> = ({
                   {method}
                 </button>
               ))}
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+      
+      {/* Cancel Order Confirmation Modal */}
+      <Dialog open={showCancelModal} onClose={() => setShowCancelModal(false)} className="relative z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <Dialog.Title className="text-lg font-semibold px-6 py-4 border-b border-gray-200">
+              Cancel Order
+            </Dialog.Title>
+            <div className="px-6 py-4">
+              <p className="text-gray-700">
+                Are you sure you want to cancel this order? This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-3 px-6 py-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowCancelModal(false)}
+                className="flex-1 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              >
+                No, Keep Order
+              </button>
+              <button
+                onClick={confirmCancel}
+                disabled={isSubmitting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? "Cancelling..." : "Yes, Cancel Order"}
+              </button>
             </div>
           </Dialog.Panel>
         </div>

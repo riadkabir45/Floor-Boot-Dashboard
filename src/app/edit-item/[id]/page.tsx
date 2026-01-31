@@ -82,7 +82,9 @@ const steps: Step[] = [
 const EditItemPage = ({ params }: EditItemPageProps) => {
   const { id } = React.use(params);
   const [currentStep, setCurrentStep] = useState(1);
-  const [categories,setCategories] = useState<BackendCategoryResponse[]>([]);
+  const [categories, setCategories] = useState<BackendCategoryResponse[]>([]);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [formData, setFormData] = useState<FormData>({
     itemDetails: {
       productTitle: "",
@@ -144,9 +146,53 @@ const EditItemPage = ({ params }: EditItemPageProps) => {
     setFormData({ ...formData, [section]: data });
   };
 
-  const handleUpdate = () => {
-    console.log("Updating product:", id, formData);
-    // Handle update logic here
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast, setToast]);
+
+  const handleUpdate = async () => {
+    setIsUpdating(true);
+    try {
+      const payload = {
+        product_title: formData.itemDetails.productTitle,
+        brand_manufacturer: formData.itemDetails.brand,
+        item_description: formData.itemDetails.description,
+        main_category: parseInt(formData.itemDetails.mainCategory),
+        sub_category: formData.itemDetails.subCategory,
+        regular_price: parseFloat(formData.pricing.regularPrice).toFixed(2),
+        sale_price: parseFloat(formData.pricing.salePrice).toFixed(2),
+        product_id: formData.pricing.productId,
+        pack_coverage: formData.pricing.packCoverage,
+        length: formData.specifications.length,
+        width: formData.specifications.width,
+        thickness: formData.specifications.thickness,
+        weight: formData.specifications.weight,
+        installation_method: formData.specifications.installationMethod,
+        coverage_per_pack: formData.specifications.coveragePerPack,
+        pile_height: formData.specifications.pileHeight,
+        materials: formData.specifications.materials,
+        format: formData.specifications.format,
+        is_underlay_required: true,
+        available_colors: formData.specifications.availableColors.join(', '),
+        pattern_type: formData.specifications.patternType,
+        stock_quantity: parseInt(formData.specifications.stockQuantity),
+      };
+
+      await api.put(`/admins/products/${id}/`, payload);
+      
+      setToast({ message: "Product updated successfully!", type: 'success' });
+      setTimeout(() => window.history.back(), 1500);
+    } catch (error) {
+      console.error("Failed to update product:", error);
+      setToast({ message: "Failed to update product. Please try again.", type: 'error' });
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   useEffect(() => {
@@ -165,7 +211,7 @@ const EditItemPage = ({ params }: EditItemPageProps) => {
             productTitle: selectedProduct.product_title,
             brand: selectedProduct.brand_manufacturer,
             description: selectedProduct.item_description,
-            mainCategory: categories.find(cat => cat.id === selectedProduct.main_category)?.title || 'Unknown',
+            mainCategory: selectedProduct.main_category.toString(),
             subCategory: selectedProduct.sub_category,
             tags: [],
             },
@@ -232,6 +278,7 @@ const EditItemPage = ({ params }: EditItemPageProps) => {
                 <ItemDetailsStep
                   data={formData.itemDetails}
                   onChange={(data) => handleDataChange("itemDetails", data)}
+                  categories={categories}
                 />
               )}
               {currentStep === 2 && (
@@ -279,14 +326,26 @@ const EditItemPage = ({ params }: EditItemPageProps) => {
               ) : (
                 <button
                   onClick={handleUpdate}
-                  className="px-6 py-2.5 bg-gray-900 text-white rounded-lg font-medium text-sm hover:bg-gray-800 transition-colors"
+                  disabled={isUpdating}
+                  className="px-6 py-2.5 bg-gray-900 text-white rounded-lg font-medium text-sm hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Update
+                  {isUpdating ? "Updating..." : "Update"}
                 </button>
               )}
             </div>
           </div>
         </div>
+
+        {/* Toast Notification */}
+        {toast && (
+          <div
+            className={`fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-white font-medium shadow-lg z-50 animate-in slide-in-from-top-2 duration-300 ${
+              toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`}
+          >
+            {toast.message}
+          </div>
+        )}
       </div>
     </div>
   );

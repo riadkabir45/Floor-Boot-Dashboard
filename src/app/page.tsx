@@ -29,7 +29,7 @@ export default function Home() {
         trackingNo: order.tracking_no || 'Shipping Pending',
         item: order.product.product_title,
         qty: order.quantity,
-        status: order.is_shiped ? "shipped" : "unshipped",
+        status: order.status === "cancelled" ? "cancelled" : order.is_shiped ? "shipped" : "unshipped",
       }));
       setTotalData(test);
     })

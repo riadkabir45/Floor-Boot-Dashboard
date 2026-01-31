@@ -10,11 +10,17 @@ import { catalogueData } from "@/data/AllData";
 import { BackendCatalogueResponse, BackendCategoryResponse, CatalogueProduct, ProductSummary } from "@/types/AllTypes";
 import api from "@/lib/apis";
 
+interface FilterType {
+  category?: number | null;
+  subcategory?: string | null;
+  inStock?: boolean;
+}
+
 const CataloguePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState<ProductSummary[]>(catalogueData);
   const [categories, setCategories] = useState<BackendCategoryResponse[]>([]);
-  const [filters, setFilters] = useState({ category: null, subcategory: null, inStock: false });
+  const [filters, setFilters] = useState<FilterType>({ category: null, subcategory: null, inStock: false });
 
   useEffect(() => {
     api.get('/users/categories/').then(response => {
@@ -41,7 +47,7 @@ const CataloguePage = () => {
     })
   },[categories])
 
-  const handleFilterChange = (newFilters: any) => {
+  const handleFilterChange = (newFilters: FilterType) => {
     setFilters(newFilters);
   };
 
