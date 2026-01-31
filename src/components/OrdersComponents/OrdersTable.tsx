@@ -22,7 +22,7 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
   const columns: TableColumn[] = [
     { key: "purchaseOrder", label: "Purchase orders", width: "150px" },
     { key: "productId", label: "Product ID", width: "150px" },
-    //{ key: "orderDate", label: "Order Date", width: "130px" },
+    { key: "orderDate", label: "Order Date", width: "130px" },
     { key: "orderTotal", label: "Order Total", width: "120px" },
     { key: "customer", label: "Customer", width: "160px" },
     { key: "shipMethod", label: "Ship Method", width: "140px" },
@@ -57,8 +57,8 @@ export const OrdersTable: React.FC<OrdersTableProps> = ({
       case "productId":
         return <span className="text-gray-700 text-sm">{item.productId}</span>;
 
-      //case "orderDate":
-      //  return <span className="text-gray-600 text-sm">{item.orderDate}</span>;
+      case "orderDate":
+        return <span className="text-gray-600 text-sm">{item.orderDate}</span>;
 
       case "orderTotal":
         return (

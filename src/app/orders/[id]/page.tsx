@@ -18,6 +18,7 @@ export default function OrderDetailsPage() {
   const router = useRouter();
   const orderId = params.id as string;
   const [order, setOrder] = useState<Order|undefined>(ordersData.find((o) => o.id === orderId));
+  const [usedTracks, setUsedTracks] = useState<string[]>([]);
 
   useEffect(() => {
     api.get(`/admins/orders/${orderId}/`).then(response => {
@@ -32,8 +33,8 @@ export default function OrderDetailsPage() {
         orderTotal: parseFloat(orderData.order_total),
         customer: orderData.user.full_name,
         shipMethod: orderData.ship_method || 'Standard',
-        carrier: 'DHL',
-        trackingNo: `TRK${orderId}`,
+        carrier: orderData.carrier || 'Pending',
+        trackingNo: orderData.tracking_no || 'Shipping Pending',
         item: orderData.product.product_title,
         qty: orderData.quantity,
         status: orderData.is_shiped ? "shipped" : "unshipped",
@@ -42,6 +43,13 @@ export default function OrderDetailsPage() {
       setOrder(fetchedOrder);
       
     });
+    api.get('/admins/admin-orders/').then(response => {
+      const newUsedTracks: string[] = response.data.data.orders.map((order:BackendOrderResponse) => order.tracking_no).filter((tn: string) => tn);
+      setUsedTracks(newUsedTracks);
+      console.log('Tracking nums:',newUsedTracks);
+    })
+
+    
   },[])
 
   if (!order) {
@@ -86,7 +94,7 @@ export default function OrderDetailsPage() {
         <OrderActionButtons />
 
         {/* Order Details Table */}
-        <OrderDetailsTable order={order} />
+        <OrderDetailsTable order={order} usedTracks={usedTracks} />
       </div>
     </div>
   );

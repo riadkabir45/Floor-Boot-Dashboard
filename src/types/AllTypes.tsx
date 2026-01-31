@@ -121,6 +121,7 @@ export interface BackendOrderResponse {
   address: Address;
   custormer_feedback: string | null;
   is_feedbacked: boolean;
+  created_at: string;
 }
 
 export interface ProductImage {

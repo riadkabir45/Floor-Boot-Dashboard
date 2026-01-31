@@ -17,16 +17,16 @@ export default function Home() {
 
   useEffect(() => {
     api.get('/admins/admin-orders/').then(response => {
-      const test: Order[] = response.data.data.orders.map((order:BackendOrderResponse,index:number) => ({
+      const test: Order[] = response.data.data.orders.map((order:BackendOrderResponse) => ({
         id: order.id.toString(),
         purchaseOrder: `PO-${1000 + order.id}`,
         productId: order.product.product_id,
-        orderDate: new Date().toISOString().split('T')[0],
+        orderDate: order.created_at,
         orderTotal: parseFloat(order.order_total),
         customer: order.user.full_name,
         shipMethod: order.ship_method || 'Standard',
-        carrier: 'DHL',
-        trackingNo: `TRK${2000 + index}`,
+        carrier: order.carrier || 'Pending',
+        trackingNo: order.tracking_no || 'Shipping Pending',
         item: order.product.product_title,
         qty: order.quantity,
         status: order.is_shiped ? "shipped" : "unshipped",
