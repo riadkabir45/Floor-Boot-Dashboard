@@ -12,8 +12,9 @@ import api from "@/lib/apis";
 
 const CataloguePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [products,setProducts] = useState<ProductSummary[]>(catalogueData);
-  const [categories,setCategories] = useState<BackendCategoryResponse[]>([]);
+  const [products, setProducts] = useState<ProductSummary[]>(catalogueData);
+  const [categories, setCategories] = useState<BackendCategoryResponse[]>([]);
+  const [filters, setFilters] = useState({ category: null, subcategory: null, inStock: false });
 
   useEffect(() => {
     api.get('/users/categories/').then(response => {
@@ -40,10 +41,23 @@ const CataloguePage = () => {
     })
   },[categories])
 
+  const handleFilterChange = (newFilters: any) => {
+    setFilters(newFilters);
+  };
+
   const filteredProducts = products.filter(
-    (product) =>
-      product.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.productId.toLowerCase().includes(searchQuery.toLowerCase()),
+    (product) => {
+      const matchesSearch = product.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          product.productId.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = !filters.category || product.category === categories.find(c => c.id === filters.category)?.title;
+      
+      const matchesSubcategory = !filters.subcategory || product.subCategory === filters.subcategory;
+      
+      const matchesStock = !filters.inStock || product.inStockQty > 0;
+      
+      return matchesSearch && matchesCategory && matchesSubcategory && matchesStock;
+    }
   );
 
   const handleEdit = (product: CatalogueProduct) => {
@@ -72,7 +86,11 @@ const CataloguePage = () => {
 
         {/* Filters */}
         <div className="mb-6">
-          <CatalogueFilters />
+          <CatalogueFilters
+            categories={categories}
+            subcategories={[...new Set(products.map(p => p.subCategory))]}
+            onFilterChange={handleFilterChange}
+          />
         </div>
 
         {/* Table */}
