@@ -2,11 +2,12 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import CustomTable from "@/components/CommonComponents/CustomTable";
 import { CatalogueProduct, TableColumn } from "@/types/AllTypes";
 import { Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface CatalogueTableProps {
   data: CatalogueProduct[];
@@ -19,6 +20,7 @@ export const CatalogueTable: React.FC<CatalogueTableProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const router = useRouter();
   const columns: TableColumn[] = [
     { key: "slNo", label: "Sl No.", width: "60px" },
     { key: "items", label: "Items", width: "300px" },
@@ -30,6 +32,11 @@ export const CatalogueTable: React.FC<CatalogueTableProps> = ({
     { key: "action", label: "Action", width: "100px" },
   ];
 
+  const handleEditClick = (item: CatalogueProduct) => {
+    onEdit?.(item);
+    router.push(`/edit-item/${item.slNo}`);
+  };
+
   const renderCell = (item: CatalogueProduct, columnKey: string) => {
     switch (columnKey) {
       case "slNo":
@@ -38,7 +45,7 @@ export const CatalogueTable: React.FC<CatalogueTableProps> = ({
       case "items":
         return (
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gray-200 rounded flex-shrink-0 overflow-hidden">
+            <div className="w-10 h-10 bg-gray-200 rounded shrink-0 overflow-hidden">
               {item.imageUrl ? (
                 <Image
                   src={item.imageUrl}
@@ -74,7 +81,11 @@ export const CatalogueTable: React.FC<CatalogueTableProps> = ({
             <span className="text-gray-700 font-medium">
               £{item.price.toFixed(2)}
             </span>
-            <button className="p-1 hover:bg-gray-100 rounded transition-colors">
+            <button
+              onClick={() => handleEditClick(item)}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              aria-label="Edit price"
+            >
               <Pencil className="w-3.5 h-3.5 text-gray-400" />
             </button>
           </div>
@@ -94,7 +105,7 @@ export const CatalogueTable: React.FC<CatalogueTableProps> = ({
         return (
           <div className="flex items-center gap-2">
             <button
-              onClick={() => onEdit?.(item)}
+              onClick={() => handleEditClick(item)}
               className="p-1.5 hover:bg-gray-100 rounded transition-colors"
               aria-label="Edit"
             >

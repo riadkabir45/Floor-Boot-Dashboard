@@ -18,8 +18,8 @@ export default function Home() {
   useEffect(() => {
     api.get('/admins/admin-orders/').then(response => {
       const test: Order[] = response.data.data.orders.map((order:BackendOrderResponse,index:number) => ({
-        id: index,
-        purchaseOrder: `PO-${1000 + index}`,
+        id: order.id.toString(),
+        purchaseOrder: `PO-${1000 + order.id}`,
         productId: order.product.product_id,
         orderDate: new Date().toISOString().split('T')[0],
         orderTotal: parseFloat(order.order_total),

@@ -2,7 +2,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ordersData } from "@/data/AllData";
 import { OrderHeader } from "@/components/OrdersComponents/OrderHeader";
@@ -10,13 +10,39 @@ import { OrderDetailsCards } from "@/components/OrdersComponents/OrderDetailsCar
 import { OrderActionButtons } from "@/components/OrdersComponents/OrderActionButtons";
 import { OrderDetailsTable } from "@/components/OrdersComponents/OrderDetailsTable";
 import { ArrowLeft } from "lucide-react";
+import { BackendOrderResponse, Order } from "@/types/AllTypes";
+import api from "@/lib/apis";
 
 export default function OrderDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const orderId = params.id as string;
+  const [order, setOrder] = useState<Order|undefined>(ordersData.find((o) => o.id === orderId));
 
-  const order = ordersData.find((o) => o.id === orderId);
+  useEffect(() => {
+    api.get(`/admins/orders/${orderId}/`).then(response => {
+      console.log('Ordered Item:',response.data.order_data);
+      const orderData: BackendOrderResponse = response.data.order_data;
+
+      const fetchedOrder: Order = {
+        id: orderId,
+        purchaseOrder: `PO-${orderId}`,
+        productId: orderData.product.product_id,
+        orderDate: new Date().toISOString().split('T')[0],
+        orderTotal: parseFloat(orderData.order_total),
+        customer: orderData.user.full_name,
+        shipMethod: orderData.ship_method || 'Standard',
+        carrier: 'DHL',
+        trackingNo: `TRK${orderId}`,
+        item: orderData.product.product_title,
+        qty: orderData.quantity,
+        status: orderData.is_shiped ? "shipped" : "unshipped",
+      };
+
+      setOrder(fetchedOrder);
+      
+    });
+  },[])
 
   if (!order) {
     return (

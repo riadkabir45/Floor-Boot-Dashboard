@@ -2,15 +2,74 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Stepper, Step } from "@/components/AddNewItemComponents/Stepper";
 import { ItemDetailsStep } from "@/components/AddNewItemComponents/ItemDetailsStep";
 import { MediaUploadStep } from "@/components/AddNewItemComponents/MediaUploadStep";
 import { PricingInventoryStep } from "@/components/AddNewItemComponents/PricingInventoryStep";
 import { SpecificationsStep } from "@/components/AddNewItemComponents/SpecificationsStep";
 import { ReviewPublishStep } from "@/components/AddNewItemComponents/ReviewPublishStep";
-import { BackednCreateProduct } from "@/types/AllTypes";
 import api from "@/lib/apis";
+import { BackendCatalogueResponse, BackendCategoryResponse } from "@/types/AllTypes";
+
+type ItemDetails = {
+  productTitle: string;
+  brand: string;
+  description: string;
+  mainCategory: string;
+  subCategory: string;
+  tags: string[];
+};
+
+type UploadedImage = {
+  id: string;
+  name: string;
+  size: string;
+  url: string;
+};
+
+type Media = {
+  images: UploadedImage[];
+  primaryImage: string;
+};
+
+type Pricing = {
+  regularPrice: string;
+  salePrice: string;
+  productId: string;
+  packCoverage: string;
+};
+
+type Specifications = {
+  length: string;
+  width: string;
+  thickness: string;
+  weight: string;
+  installationMethod: string;
+  coveragePerPack: string;
+  edgeProfile: string;
+  pileHeight: string;
+  materials: string;
+  format: string;
+  uniformityRequired: boolean;
+  additionalDetails: boolean;
+  availableColors: string[];
+  patternType: string;
+  stockQuantity: string;
+};
+
+type FormData = {
+  itemDetails: ItemDetails;
+  media: Media;
+  pricing: Pricing;
+  specifications: Specifications;
+};
+
+type EditItemPageProps = {
+  params: Promise<{
+    id: string;
+  }>;
+};
 
 const steps: Step[] = [
   { id: 1, title: "Item Details", description: "" },
@@ -20,9 +79,11 @@ const steps: Step[] = [
   { id: 5, title: "Review & Publish", description: "" },
 ];
 
-const AddNewItemPage = () => {
+const EditItemPage = ({ params }: EditItemPageProps) => {
+  const { id } = React.use(params);
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
+  const [categories,setCategories] = useState<BackendCategoryResponse[]>([]);
+  const [formData, setFormData] = useState<FormData>({
     itemDetails: {
       productTitle: "",
       brand: "",
@@ -76,47 +137,80 @@ const AddNewItemPage = () => {
     setCurrentStep(step);
   };
 
-  type Section = "itemDetails" | "media" | "pricing" | "specifications";
-  type ItemDetails = typeof formData.itemDetails;
-  type Media = typeof formData.media;
-  type Pricing = typeof formData.pricing;
-  type Specifications = typeof formData.specifications;
-
-  const handleDataChange = (
-    section: Section,
-    data: ItemDetails | Media | Pricing | Specifications
+  const handleDataChange = <K extends keyof FormData>(
+    section: K,
+    data: FormData[K]
   ) => {
     setFormData({ ...formData, [section]: data });
   };
 
-  const handlePublish = () => {
-    console.log("Publishing product:", formData);
-    const payload:BackednCreateProduct = {
-      product_id: formData.pricing.productId,
-      product_title: formData.itemDetails.productTitle,
-      brand_manufacturer: formData.itemDetails.brand,
-      main_category: parseInt(formData.itemDetails.mainCategory),
-      sub_category: formData.itemDetails.subCategory,
-      regular_price: parseFloat(formData.pricing.regularPrice),
-      sale_price: parseFloat(formData.pricing.salePrice),
-      length: parseFloat(formData.specifications.length),
-      width: parseFloat(formData.specifications.width),
-      thickness: parseFloat(formData.specifications.thickness),
-      pile_height: parseFloat(formData.specifications.pileHeight),
-      weight: parseFloat(formData.specifications.weight),
-      materials: formData.specifications.materials.split(',').map(item => item.trim()),
-      pattern_type: formData.specifications.patternType,
-      available_colors: formData.specifications.availableColors,
-      installation_method: formData.specifications.installationMethod,
-      pack_coverage: Number(formData.pricing.packCoverage),
-      // Logic & Stock
-      is_underlay_required: formData.specifications.additionalDetails,
-      stock_quantity: parseInt(formData.specifications.stockQuantity),
-      format: formData.specifications.format as 'Roll' | 'Tile',
-      coverage_per_pack: parseFloat(formData.specifications.coveragePerPack),
-    }
-    api.post('/admins/products/',payload)
+  const handleUpdate = () => {
+    console.log("Updating product:", id, formData);
+    // Handle update logic here
   };
+
+  useEffect(() => {
+    api.get('/users/categories/').then(response => {
+      console.log('Categories:',response.data.categories);
+      setCategories(response.data.categories);
+    })
+  },[])
+  useEffect(() => {
+    api.get('/admins/products/').then(response => {
+      const allProducts: BackendCatalogueResponse[] = response.data.products
+      const selectedProduct = allProducts.find((product:BackendCatalogueResponse) => product.id.toString() === id);
+      if (selectedProduct) {
+      const fetchedProducts: FormData = {
+            itemDetails: {
+            productTitle: selectedProduct.product_title,
+            brand: selectedProduct.brand_manufacturer,
+            description: selectedProduct.item_description,
+            mainCategory: categories.find(cat => cat.id === selectedProduct.main_category)?.title || 'Unknown',
+            subCategory: selectedProduct.sub_category,
+            tags: [],
+            },
+            media: {
+            images: selectedProduct.uploaded_images.map((img) => ({
+                id: img.id.toString(),
+                name: img.title || 'Image',
+                size: 'Unknown',
+                url: img.image,
+            })),
+            primaryImage: selectedProduct.primary_image,
+            },
+            pricing: {
+            regularPrice: selectedProduct.regular_price,
+            salePrice: selectedProduct.sale_price,
+            productId: selectedProduct.product_id,
+            packCoverage: selectedProduct.pack_coverage,
+            },
+            specifications: {
+            length: selectedProduct.length,
+            width: selectedProduct.width,
+            thickness: selectedProduct.thickness,
+            weight: selectedProduct.weight,
+            installationMethod: selectedProduct.installation_method,
+            coveragePerPack: selectedProduct.pack_coverage,
+            edgeProfile: '',
+            pileHeight: selectedProduct.pile_height,
+            materials: selectedProduct.materials,
+            format: selectedProduct.format,
+            uniformityRequired: selectedProduct.is_calculate,
+            additionalDetails: false,
+            availableColors: selectedProduct.available_colors ? selectedProduct.available_colors.split(',') : [],
+            patternType: selectedProduct.pattern_type,
+            stockQuantity: selectedProduct.stock_quantity.toString(),
+            },
+        };
+        console.log("Current product:",fetchedProducts);
+        
+        
+        setFormData(fetchedProducts);
+      }
+    console.log("Fetched products:", response.data.products);
+    console.log("Selected product:", selectedProduct);  
+    })
+  },[id, categories])
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
@@ -184,10 +278,10 @@ const AddNewItemPage = () => {
                 </button>
               ) : (
                 <button
-                  onClick={handlePublish}
+                  onClick={handleUpdate}
                   className="px-6 py-2.5 bg-gray-900 text-white rounded-lg font-medium text-sm hover:bg-gray-800 transition-colors"
                 >
-                  Publish
+                  Update
                 </button>
               )}
             </div>
@@ -198,4 +292,4 @@ const AddNewItemPage = () => {
   );
 };
 
-export default AddNewItemPage;
+export default EditItemPage;

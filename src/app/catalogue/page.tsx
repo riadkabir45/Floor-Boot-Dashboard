@@ -2,16 +2,43 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { CatalogueSearchBar } from "@/components/CatalogueComponsnts/CatalogueSearchBar";
 import { CatalogueFilters } from "@/components/CatalogueComponsnts/CatalogueFilters";
 import { CatalogueTable } from "@/components/CatalogueComponsnts/CatalogueTable";
 import { catalogueData } from "@/data/AllData";
-import { CatalogueProduct } from "@/types/AllTypes";
+import { BackendCatalogueResponse, BackendCategoryResponse, CatalogueProduct, ProductSummary } from "@/types/AllTypes";
+import api from "@/lib/apis";
 
 const CataloguePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [products] = useState<CatalogueProduct[]>(catalogueData);
+  const [products,setProducts] = useState<ProductSummary[]>(catalogueData);
+  const [categories,setCategories] = useState<BackendCategoryResponse[]>([]);
+
+  useEffect(() => {
+    api.get('/users/categories/').then(response => {
+      console.log('Categories:',response.data.categories);
+      setCategories(response.data.categories);
+    })
+  },[])
+  useEffect(() => {
+    api.get('/admins/products/').then(response => {
+      console.log(response.data.products);
+      const fetchedProducts: ProductSummary[] = response.data.products.map((product:BackendCatalogueResponse,index:number) => ({
+        id: index,
+        slNo: product.id.toString(),
+        itemName: product.product_title,
+        productId: product.product_id,
+        brand: product.brand_manufacturer,
+        category: categories.find(cat => cat.id === product.main_category)?.title || 'Unknown',
+        subCategory: product.sub_category,
+        price: parseFloat(product.sale_price),
+        inStockQty: product.stock_quantity,
+      }));
+      console.log(catalogueData[0]);
+      setProducts(fetchedProducts);
+    })
+  },[categories])
 
   const filteredProducts = products.filter(
     (product) =>

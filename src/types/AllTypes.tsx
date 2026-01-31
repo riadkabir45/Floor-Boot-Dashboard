@@ -105,6 +105,7 @@ export interface Address {
 }
 
 export interface BackendOrderResponse {
+  id: number;
   user: User;
   product: Product;
   quantity: number;
@@ -120,4 +121,86 @@ export interface BackendOrderResponse {
   address: Address;
   custormer_feedback: string | null;
   is_feedbacked: boolean;
+}
+
+export interface ProductImage {
+  id: number;
+  image: string;
+  title: string | null;
+}
+
+export interface BackendCatalogueResponse {
+  id: number;
+  product_id: string;
+  product_title: string;
+  brand_manufacturer: string;
+  item_description: string;
+  
+  main_category: number;
+  sub_category: string;
+  
+  primary_image: string;
+  uploaded_images: ProductImage[];
+  
+  regular_price: string; 
+  sale_price: string;
+  
+  pack_coverage: string;
+  length: string;
+  width: string;
+  thickness: string;
+  weight: string;
+  pile_height: string;
+  
+  materials: string;
+  format: string;
+  installation_method: string;
+  available_colors: string;
+  pattern_type: string;
+  
+  is_underlay_required: boolean;
+  is_calculate: boolean;
+  stock_quantity: number;
+}
+
+export interface BackendCategoryResponse {
+  id: number;
+  title: string;
+  image: string;
+}
+
+export interface ProductSummary {
+  id: string;
+  slNo: string;
+  itemName: string;
+  productId: string;
+  category: string;
+  subCategory: string;
+  price: number;
+  inStockQty: number;
+}
+
+
+export interface BackednCreateProduct {
+  product_id: string;
+  product_title: string;
+  brand_manufacturer: string;
+  main_category: number;
+  sub_category: string;
+  regular_price: number;
+  sale_price: number;
+  length: number;
+  width: number;
+  thickness: number;
+  pile_height: number;
+  weight: number;
+  materials: string[];
+  pattern_type: string;
+  format: 'Roll' | 'Tile';
+  available_colors: string[];
+  is_underlay_required: boolean;
+  installation_method: string;
+  pack_coverage: number;
+  coverage_per_pack: number;
+  stock_quantity: number;
 }

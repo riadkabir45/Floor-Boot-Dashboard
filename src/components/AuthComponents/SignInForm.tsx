@@ -8,6 +8,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 import api from "@/lib/apis";
+import Cookies from "js-cookie";
 
 export const SignInForm: React.FC = () => {
   const router = useRouter();
@@ -30,7 +31,8 @@ export const SignInForm: React.FC = () => {
     resp.then((response) => {
       console.log("Login successful:", response.data);
       setErrorOccured(false);
-      localStorage.setItem('token', response.data.access);
+      Cookies.set('token', response.data.access, { expires: 7, path: '/' });
+      
       router.push("/");
     }).catch((error) => {
       console.error("Login failed:", error);
